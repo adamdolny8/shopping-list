@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#28a745">
+  <title>Nákupný zoznam</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#28a745">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="card">
+    <h1>🛒 Shopping list</h1>
+    
+    <select id="categorySelect">
+      <option value="Potraviny">🥦 Potraviny</option>
+      <option value="Drogéria">🧴 Drogéria</option>
+      <option value="Domácnosť">🏠 Domácnosť</option>
+      <option value="Iné">📦 Iné</option>
+    </select>
+
+    <div class="input-group">
+      <input id="itemInput" placeholder="Napíš položku...">
+      <button onclick="addItem()">Pridať</button>
+    </div>
+
+    <ul id="list"></ul>
+    <hr id="divider" style="display:none; margin: 30px 0; border: 0; border-top: 1px dashed #ccc;">
+    <ul id="completedList"></ul>
+
+    <button id="shareBtn" onclick="shareList()">🔗 Kopírovať odkaz na zdieľanie</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>
