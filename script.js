@@ -73,6 +73,7 @@ function changeLanguage(lang) {
     loadItems(); // Refresh položiek, aby sa prejavili zmeny (ak sú naviazané)
 }
 
+// Táto funkcia vykresľuje tlačidlá a pridáva k nim krížik (X)
 function renderTabs() {
     const container = document.getElementById("listTabs");
     container.innerHTML = "";
@@ -80,7 +81,11 @@ function renderTabs() {
     myLists.forEach(t => {
         const btn = document.createElement("button");
         btn.className = LIST_ID === t ? "active" : "";
-        btn.innerText = t.charAt(0).toUpperCase() + t.slice(1);
+        
+        // Ak to nie je 'domov', pridáme ikonku krížika
+        const deleteIcon = t !== "domov" ? `<span class="delete-tab-icon" onclick="removeList('${t}', event)">×</span>` : "";
+        
+        btn.innerHTML = `${t.charAt(0).toUpperCase() + t.slice(1)} ${deleteIcon}`;
         btn.onclick = () => switchList(t);
         container.appendChild(btn);
     });
@@ -90,6 +95,27 @@ function renderTabs() {
     addBtn.innerText = "+";
     addBtn.onclick = addNewList;
     container.appendChild(addBtn);
+}
+
+// Táto funkcia zabezpečí vymazanie sekcie z pamäte
+function removeList(id, event) {
+    event.stopPropagation(); // Dôležité: aby sa pri kliknutí na X nespustilo aj otvorenie zoznamu
+
+    if (id === "domov") {
+        alert("Základnú sekciu 'Domov' nie je možné odstrániť.");
+        return;
+    }
+
+    if (confirm(`Naozaj chceš odstrániť celú sekciu "${id}"?`)) {
+        myLists = myLists.filter(t => t !== id);
+        localStorage.setItem("myLists", JSON.stringify(myLists));
+        
+        if (LIST_ID === id) {
+            switchList("domov");
+        } else {
+            renderTabs();
+        }
+    }
 }
 
 function switchList(id) {

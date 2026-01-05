@@ -92,3 +92,30 @@ button:active {
     flex-direction: column;
     gap: 4px;
 }
+/* Štýl pre krížik na mazanie sekcií */
+.delete-tab-icon {
+    margin-left: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    color: white;
+    transition: 0.2s;
+}
+
+.delete-tab-icon:hover {
+    background: #ff4757; /* Jasná červená pri interakcii */
+    transform: scale(1.1);
+}
+
+/* Úprava tlačidla sekcie, aby sa krížik zmestil vedľa textu */
+.list-tabs button {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+}
