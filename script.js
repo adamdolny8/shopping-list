@@ -3,7 +3,6 @@ const SUPABASE_KEY = "sb_publishable_OKve-4fG_2d0yXhWa0UgGA_Lhq_OzOz";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentLang = localStorage.getItem("appLang") || "sk";
-// Ak meno nie je v pamäti, nastavíme null, aby sa program opýtal
 let currentUserName = localStorage.getItem("userName"); 
 let LIST_ID = new URLSearchParams(window.location.search).get("list") || "domov";
 let myLists = JSON.parse(localStorage.getItem("myLists")) || ["domov"];
@@ -11,23 +10,36 @@ let itemHistory = JSON.parse(localStorage.getItem("itemHistory") || "{}");
 
 const translations = {
     sk: {
-        welcome: "Ahoj", title: "Shopping List", items: "Položky", total: "Celková suma",
+        welcome: "Ahoj", title: "Nákupný zoznam", items: "Položky", total: "Celková suma",
         frequent: "Často kupované", addBtn: "Pridať", toBuy: "Treba kúpiť", bought: "Kúpené",
         clearBtn: "Vymazať históriu nákupu", promptList: "Názov novej sekcie:", placeholder: "Názov položky...",
         searchPlaceholder: "🔍 Vyhľadať...", promptName: "Ako sa voláš?",
         categories: ["🥦 Potraviny", "🧴 Drogéria", "🏠 Domácnosť", "📦 Iné"]
     },
     en: {
-        welcome: "Hello", title: "Shopping List", items: "Items", total: "Total",
-        frequent: "Frequent", addBtn: "Add", toBuy: "To Buy", bought: "Bought",
-        clearBtn: "Clear History", promptList: "New section:", placeholder: "Item...",
+        welcome: "Hello", title: "Shopping List", items: "Items", total: "Total Amount",
+        frequent: "Frequently Bought", addBtn: "Add", toBuy: "To Buy", bought: "Bought",
+        clearBtn: "Clear Purchase History", promptList: "New section name:", placeholder: "Item name...",
         searchPlaceholder: "🔍 Search...", promptName: "What is your name?",
         categories: ["🥦 Groceries", "🧴 Drugstore", "🏠 Household", "📦 Other"]
+    },
+    es: {
+        welcome: "Hola", title: "Lista de compras", items: "Artículos", total: "Suma total",
+        frequent: "Frecuentes", addBtn: "Añadir", toBuy: "Por comprar", bought: "Comprado",
+        clearBtn: "Borrar historial", promptList: "Nueva sección:", placeholder: "Nombre...",
+        searchPlaceholder: "🔍 Buscar...", promptName: "Tu nombre:",
+        categories: ["🥦 Comida", "🧴 Farmacia", "🏠 Hogar", "📦 Otros"]
+    },
+    de: {
+        welcome: "Hallo", title: "Einkaufsliste", items: "Artikel", total: "Gesamtbetrag",
+        frequent: "Oft gekauft", addBtn: "Hinzufügen", toBuy: "Zu kaufen", bought: "Gekauft",
+        clearBtn: "Verlauf löschen", promptList: "Neuer Bereich:", placeholder: "Artikel...",
+        searchPlaceholder: "🔍 Suchen...", promptName: "Dein Name:",
+        categories: ["🥦 Lebensmittel", "🧴 Drogerie", "🏠 Haushalt", "📦 Sonstiges"]
     }
 };
 
 window.onload = () => {
-    // Ak nemáme meno, vypýtame si ho hneď na začiatku
     if (!currentUserName) {
         changeName();
     }
@@ -38,22 +50,38 @@ window.onload = () => {
     renderSuggestions();
 };
 
+function changeLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem("appLang", lang);
+    applyLanguage();
+    renderTabs();
+    renderSuggestions();
+    loadItems();
+}
+
 function applyLanguage() {
     const t = translations[currentLang] || translations.sk;
-    document.getElementById("welcomeText").innerText = `${t.welcome}, ${currentUserName || '...'} 👋`;
-    document.getElementById("txt-title").innerText = t.title;
-    document.getElementById("txt-items").innerText = t.items;
-    document.getElementById("txt-total").innerText = t.total;
-    document.getElementById("txt-frequent").innerText = t.frequent;
-    document.getElementById("itemInput").placeholder = t.placeholder;
-    document.getElementById("searchInput").placeholder = t.searchPlaceholder;
-    document.getElementById("txt-addBtn").innerText = t.addBtn;
-    document.getElementById("txt-toBuy").innerText = t.toBuy;
-    document.getElementById("txt-bought").innerText = t.bought;
-    document.getElementById("txt-clearBtn").innerText = t.clearBtn;
+    
+    if(document.getElementById("welcomeText")) 
+        document.getElementById("welcomeText").innerText = `${t.welcome}, ${currentUserName || '...'} 👋`;
+    
+    if(document.getElementById("txt-title")) document.getElementById("txt-title").innerText = t.title;
+    if(document.getElementById("txt-items")) document.getElementById("txt-items").innerText = t.items;
+    if(document.getElementById("txt-total")) document.getElementById("txt-total").innerText = t.total;
+    if(document.getElementById("txt-frequent")) document.getElementById("txt-frequent").innerText = t.frequent;
+    
+    if(document.getElementById("itemInput")) document.getElementById("itemInput").placeholder = t.placeholder;
+    if(document.getElementById("searchInput")) document.getElementById("searchInput").placeholder = t.searchPlaceholder;
+    if(document.getElementById("txt-addBtn")) document.getElementById("txt-addBtn").innerText = t.addBtn;
+    
+    if(document.getElementById("txt-toBuy")) document.getElementById("txt-toBuy").innerText = t.toBuy;
+    if(document.getElementById("txt-bought")) document.getElementById("txt-bought").innerText = t.bought;
+    if(document.getElementById("txt-clearBtn")) document.getElementById("txt-clearBtn").innerText = t.clearBtn;
 
     const catSelect = document.getElementById("categorySelect");
-    catSelect.innerHTML = t.categories.map(c => `<option value="${c}">${c}</option>`).join("");
+    if(catSelect) {
+        catSelect.innerHTML = t.categories.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
 }
 
 function changeName() {
@@ -64,12 +92,6 @@ function changeName() {
         localStorage.setItem("userName", currentUserName);
         applyLanguage();
     }
-}
-
-function changeLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem("appLang", lang);
-    applyLanguage();
 }
 
 function renderTabs() {
