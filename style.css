@@ -17,13 +17,24 @@ body {
 
 .app-container { max-width: 500px; margin: 0 auto; }
 
+/* HLAVIČKA */
 header { margin-bottom: 25px; }
 .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.header-controls { display: flex; gap: 10px; align-items: center; }
+.header-controls { display: flex; gap: 12px; align-items: center; }
+
+#langSelect {
+    background: transparent;
+    border: 1px solid #333;
+    color: white;
+    font-size: 12px;
+    padding: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
 .header-main { display: flex; justify-content: space-between; align-items: center; }
 
-/* Sekcie - Tabs */
+/* SEKTCIE - TABS */
 .list-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
 .list-tabs::-webkit-scrollbar { display: none; }
 .list-tabs button { 
@@ -45,7 +56,8 @@ header { margin-bottom: 25px; }
     box-shadow: 0 4px 15px rgba(138,43,226,0.3); 
 }
 
-/* Krížik na mazanie sekcie */
+.add-tab { background: #333 !important; font-weight: bold; min-width: 40px; }
+
 .delete-tab-icon { 
     font-size: 16px; 
     opacity: 0.6; 
@@ -53,7 +65,7 @@ header { margin-bottom: 25px; }
 }
 .delete-tab-icon:hover { color: #ff4757; opacity: 1; }
 
-/* Fialová karta so štatistikami */
+/* ŠTATISTIKY */
 .stats-card { 
     background: linear-gradient(135deg, #6e30f2, #aba0f9); 
     padding: 20px; 
@@ -66,7 +78,7 @@ header { margin-bottom: 25px; }
 .stat-label { display: block; font-size: 12px; opacity: 0.8; }
 .stat-value { font-size: 20px; font-weight: bold; }
 
-/* Vyhľadávanie */
+/* VYHĽADÁVANIE */
 .search-area { margin-bottom: 20px; }
 .search-area input { 
     width: 100%; 
@@ -78,7 +90,7 @@ header { margin-bottom: 25px; }
     box-sizing: border-box; 
 }
 
-/* Často kupované bublinky */
+/* ČASTO KUPOVANÉ */
 .tags-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
 .tag { 
     background: #2a2e3f; 
@@ -94,7 +106,7 @@ header { margin-bottom: 25px; }
     transform: translateY(-2px); 
 }
 
-/* Vstupné pole */
+/* VSTUPNÉ POLE */
 .input-area { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 25px; }
 .input-row { display: flex; gap: 8px; margin-top: 10px; }
 input, select { background: #0f111a; border: 1px solid #333; color: white; padding: 10px; border-radius: 10px; }
@@ -110,7 +122,7 @@ input, select { background: #0f111a; border: 1px solid #333; color: white; paddi
     flex-grow: 1; 
 }
 
-/* Položky v zozname */
+/* POLOŽKY V ZOZNAME */
 li { 
     background: var(--card); 
     margin-bottom: 10px; 
@@ -122,9 +134,34 @@ li {
     transition: 0.3s; 
 }
 li.done { opacity: 0.4; text-decoration: line-through; }
+
+.item-main { display: flex; align-items: center; gap: 15px; }
 .item-meta { font-size: 11px; color: var(--text-dim); }
 
-/* Tlačidlá a ikony */
+/* POSÚVANIE (ŠÍPKY) */
+.move-controls { display: flex; flex-direction: column; gap: 2px; }
+.move-btn { 
+    background: #2a2e3f; 
+    border: none; 
+    color: #8a2be2; 
+    font-size: 10px; 
+    padding: 4px; 
+    border-radius: 4px; 
+    cursor: pointer;
+    line-height: 1;
+}
+.move-btn:hover { background: #8a2be2; color: white; }
+
+/* AKCIE A CENA */
+.item-actions { display: flex; align-items: center; gap: 12px; }
+.price-tag { 
+    background: rgba(138, 43, 226, 0.2); 
+    padding: 4px 8px; 
+    border-radius: 6px; 
+    font-size: 13px;
+    color: #aba0f9;
+}
+
 .clear-btn { 
     width: 100%; 
     padding: 12px; 
@@ -135,6 +172,9 @@ li.done { opacity: 0.4; text-decoration: line-through; }
     margin-top: 15px; 
     cursor: pointer; 
 }
+
 .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: white; transition: 0.3s; }
+
+/* EFEKTY */
 .icon-btn:active { transform: scale(0.9); }
 button:active { transform: scale(0.95); }
