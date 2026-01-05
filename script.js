@@ -3,34 +3,35 @@ const SUPABASE_KEY = "sb_publishable_OKve-4fG_2d0yXhWa0UgGA_Lhq_OzOz";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentLang = localStorage.getItem("appLang") || "sk";
-let currentUserName = localStorage.getItem("userName") || "User";
+let currentUserName = localStorage.getItem("userName") || "Adam";
 let LIST_ID = new URLSearchParams(window.location.search).get("list") || "domov";
-let myLists = JSON.parse(localStorage.getItem("myLists")) || ["domov", "auto", "práca"];
+// Začíname len s domovom, ak nie je uložené inak
+let myLists = JSON.parse(localStorage.getItem("myLists")) || ["domov"];
 
 const translations = {
     sk: {
         welcome: "Ahoj", title: "Nákupný zoznam", items: "Položky", total: "Celková suma",
         frequent: "Často kupované", addBtn: "Pridať", toBuy: "Treba kúpiť", bought: "Kúpené",
-        clearBtn: "Vymazať históriu", promptName: "Zadaj meno:", promptList: "Názov novej sekcie:",
+        clearBtn: "Vymazať históriu nákupu", promptList: "Názov novej sekcie:", placeholder: "Názov položky...",
         categories: ["🥦 Potraviny", "🧴 Drogéria", "🏠 Domácnosť", "📦 Iné"]
     },
     en: {
-        welcome: "Hello", title: "Shopping List", items: "Items", total: "Total Price",
+        welcome: "Hello", title: "Shopping List", items: "Items", total: "Total Amount",
         frequent: "Frequently Bought", addBtn: "Add", toBuy: "To Buy", bought: "Bought",
-        clearBtn: "Clear History", promptName: "Enter name:", promptList: "New section name:",
+        clearBtn: "Clear Purchase History", promptList: "New section name:", placeholder: "Item name...",
         categories: ["🥦 Groceries", "🧴 Drugstore", "🏠 Household", "📦 Other"]
     },
     es: {
-        welcome: "Hola", title: "Lista de compras", items: "Artículos", total: "Precio total",
-        frequent: "Comprado con frecuencia", addBtn: "Añadir", toBuy: "Para comprar", bought: "Comprado",
-        clearBtn: "Borrar historial", promptName: "Nombre:", promptList: "Nueva sección:",
+        welcome: "Hola", title: "Lista de compras", items: "Artículos", total: "Suma total",
+        frequent: "Comprado a menudo", addBtn: "Añadir", toBuy: "Por comprar", bought: "Comprado",
+        clearBtn: "Borrar historial", promptList: "Nombre de la sección:", placeholder: "Nombre del artículo...",
         categories: ["🥦 Comida", "🧴 Farmacia", "🏠 Hogar", "📦 Otros"]
     },
     de: {
-        welcome: "Hallo", title: "Einkaufsliste", items: "Artikel", total: "Gesamtpreis",
+        welcome: "Hallo", title: "Einkaufsliste", items: "Artikel", total: "Gesamtbetrag",
         frequent: "Oft gekauft", addBtn: "Hinzufügen", toBuy: "Zu kaufen", bought: "Gekauft",
-        clearBtn: "Verlauf löschen", promptName: "Name eingeben:", promptList: "Neuer Bereich:",
-        categories: ["🥦 Lebensmittel", "🧴 Drogerie", "🏠 Haushalt", "📦 Anderes"]
+        clearBtn: "Verlauf löschen", promptList: "Bereichsname:", placeholder: "Artikelname...",
+        categories: ["🥦 Lebensmittel", "🧴 Drogerie", "🏠 Haushalt", "📦 Sonstiges"]
     }
 };
 
@@ -43,17 +44,25 @@ window.onload = () => {
 
 function applyLanguage() {
     const t = translations[currentLang];
+    // Preklad hlavičky a štatistík
     document.getElementById("welcomeText").innerText = `${t.welcome}, ${currentUserName} 👋`;
     document.getElementById("txt-title").innerText = t.title;
     document.getElementById("txt-items").innerText = t.items;
     document.getElementById("txt-total").innerText = t.total;
     document.getElementById("txt-frequent").innerText = t.frequent;
+    
+    // Preklad formulára
+    document.getElementById("itemInput").placeholder = t.placeholder;
     document.getElementById("txt-addBtn").innerText = t.addBtn;
+    
+    // Preklad sekcií zoznamu
     document.getElementById("txt-toBuy").innerText = t.toBuy;
     document.getElementById("txt-bought").innerText = t.bought;
     document.getElementById("txt-clearBtn").innerText = t.clearBtn;
 
+    // Preklad kategórií v selecte
     const catSelect = document.getElementById("categorySelect");
+    const currentVal = catSelect.value;
     catSelect.innerHTML = t.categories.map(c => `<option value="${c}">${c}</option>`).join("");
 }
 
@@ -61,15 +70,26 @@ function changeLanguage(lang) {
     currentLang = lang;
     localStorage.setItem("appLang", lang);
     applyLanguage();
+    loadItems(); // Refresh položiek, aby sa prejavili zmeny (ak sú naviazané)
 }
 
 function renderTabs() {
     const container = document.getElementById("listTabs");
-    container.innerHTML = myLists.map(t => `
-        <button class="${LIST_ID === t ? 'active' : ''}" onclick="switchList('${t}')">
-            ${t.charAt(0).toUpperCase() + t.slice(1)}
-        </button>
-    `).join("") + `<button onclick="addNewList()" class="add-tab">+</button>`;
+    container.innerHTML = "";
+    
+    myLists.forEach(t => {
+        const btn = document.createElement("button");
+        btn.className = LIST_ID === t ? "active" : "";
+        btn.innerText = t.charAt(0).toUpperCase() + t.slice(1);
+        btn.onclick = () => switchList(t);
+        container.appendChild(btn);
+    });
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "add-tab";
+    addBtn.innerText = "+";
+    addBtn.onclick = addNewList;
+    container.appendChild(addBtn);
 }
 
 function switchList(id) {
@@ -78,7 +98,7 @@ function switchList(id) {
 
 function addNewList() {
     let n = prompt(translations[currentLang].promptList);
-    if (n) {
+    if (n && n.trim() !== "") {
         let slug = n.toLowerCase().trim();
         if (!myLists.includes(slug)) {
             myLists.push(slug);
@@ -88,15 +108,8 @@ function addNewList() {
     }
 }
 
-// Ostatné funkcie (loadItems, addItem, toggleItem, deleteItem) ostávajú rovnaké ako v predošlej verzii
-// ... (pri addItem a loadItems sa uisti, že používaš premennú LIST_ID)
-
-// SMART REFRESH
+// Ostatné funkcie pre prácu so Supabase (addItem, loadItems, atď.) sú v tomto kóde integrované
 async function loadItems() {
-    const btn = document.querySelector('.header-main .icon-btn');
-    btn.style.transform = "rotate(360deg)";
-    setTimeout(() => btn.style.transform = "rotate(0deg)", 500);
-
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
     const activeUl = document.getElementById("activeList");
     const doneUl = document.getElementById("completedList");
@@ -108,8 +121,6 @@ async function loadItems() {
     items.forEach(item => {
         const li = document.createElement("li");
         if (item.done) li.classList.add("done");
-        
-        // Používame unikátne ID (timestamp) pre manipuláciu
         const itemId = item.id || Date.now() + Math.random();
 
         li.innerHTML = `
@@ -123,7 +134,6 @@ async function loadItems() {
                 <button class="icon-btn" onclick="deleteItem('${itemId}')">🗑️</button>
             </div>
         `;
-        
         if (item.done) doneUl.appendChild(li);
         else {
             activeUl.appendChild(li);
@@ -137,30 +147,25 @@ async function loadItems() {
 }
 
 async function addItem() {
-    const text = document.getElementById("itemInput").value.trim();
-    const price = document.getElementById("priceInput").value || 0;
+    const input = document.getElementById("itemInput");
+    const priceInput = document.getElementById("priceInput");
+    const text = input.value.trim();
     if (!text) return;
 
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
     let items = data?.items || [];
     
-    // Každá položka dostane unikátne ID
     items.push({ 
         id: Date.now() + Math.random(), 
         text, 
-        price, 
+        price: priceInput.value || 0, 
         category: document.getElementById("categorySelect").value, 
         done: false, 
         user: currentUserName 
     });
-    
-    // Aktualizácia histórie pre Smart Quick Add
-    history[text.toLowerCase()] = (history[text.toLowerCase()] || 0) + 1;
-    localStorage.setItem("itemHistory", JSON.stringify(history));
 
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
-    document.getElementById("itemInput").value = "";
-    document.getElementById("priceInput").value = "";
+    input.value = ""; priceInput.value = "";
     loadItems();
 }
 
@@ -178,36 +183,8 @@ async function deleteItem(id) {
     loadItems();
 }
 
-function renderSuggestions() {
-    const sorted = Object.entries(history).sort((a,b) => b[1] - a[1]).slice(0, 5);
-    const container = document.getElementById("smartSuggestions");
-    container.innerHTML = sorted.map(([name]) => `<span class="tag" onclick="quickAdd('${name}')">${name}</span>`).join("");
-}
-
-function quickAdd(name) {
-    document.getElementById("itemInput").value = name;
-    addItem();
-}
-
-function renderTabs() {
-    const tabs = ["domov", "auto", "práca"]; 
-    const container = document.getElementById("listTabs");
-    container.innerHTML = tabs.map(t => `
-        <button class="${LIST_ID === t ? 'active' : ''}" onclick="switchList('${t}')">
-            ${t.charAt(0).toUpperCase() + t.slice(1)}
-        </button>
-    `).join("") + '<button onclick="addNewList()" class="add-tab">+</button>';
-}
-
-function switchList(id) { window.location.href = `?list=${id}`; }
-
-function addNewList() {
-    let n = prompt("Názov nového zoznamu:");
-    if (n) switchList(n.toLowerCase().trim());
-}
-
 async function clearDone() {
-    if(!confirm("Vymazať všetky kúpené položky?")) return;
+    if(!confirm(translations[currentLang].clearBtn + "?")) return;
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
     let items = data.items.filter(i => !i.done);
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
