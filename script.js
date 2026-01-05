@@ -2,6 +2,7 @@ const SUPABASE_URL = "https://tkgxqdrzqpawbyfjlfnm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_OKve-4fG_2d0yXhWa0UgGA_Lhq_OzOz";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Získanie mena používateľa
 let userName = localStorage.getItem("shopping_user") || prompt("Tvoje meno:") || "Hosť";
 localStorage.setItem("shopping_user", userName);
 
@@ -16,7 +17,9 @@ window.onload = () => {
 function renderQuickTags() {
     const tags = ["🥛 Mlieko", "🍞 Chlieb", "🥚 Vajcia", "🍎 Ovocie", "🧻 Toaleťák"];
     const container = document.getElementById("quickTags");
-    container.innerHTML = tags.map(t => `<span class="tag" onclick="addQuick('${t}')">${t}</span>`).join("");
+    if (container) {
+        container.innerHTML = tags.map(t => `<span class="tag" onclick="addQuick('${t}')">${t}</span>`).join("");
+    }
 }
 
 async function addQuick(text) {
@@ -24,61 +27,88 @@ async function addQuick(text) {
     addItem();
 }
 
+// OPRAVENÉ: Odstránené zdvojené "async"
 async function loadItems() {
     const listEl = document.getElementById("list");
     const compListEl = document.getElementById("completedList");
-    listEl.innerHTML = ""; compListEl.innerHTML = "";
+    if (!listEl || !compListEl) return;
+
+    listEl.innerHTML = ""; 
+    compListEl.innerHTML = "";
     
+    // Zvýraznenie aktívneho tlačidla zoznamu
+    document.querySelectorAll('.list-selector button').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.getElementById(`btn-${LIST_ID}`);
+    if(activeBtn) {
+        activeBtn.classList.add('active');
+    }
+
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
     let total = 0;
 
     if (data && data.items) {
+        // Zoradenie podľa kategórie
         data.items.sort((a,b) => a.category.localeCompare(b.category)).forEach(item => {
             const li = document.createElement("li");
             if (item.done) li.classList.add("done");
 
             li.innerHTML = `
                 <div class="item-info">
-                    <span>${item.text} ${item.price ? `(<b>${item.price}€</b>)` : ''}</span>
+                    <span>${item.text} ${item.price > 0 ? `(<b>${item.price}€</b>)` : ''}</span>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <span class="category-label">${item.category}</span>
-                        <span class="user-badge">${item.user || 'unknwn'}</span>
+                        <span class="user-badge">${item.user || 'Hosť'}</span>
                     </div>
                 </div>
-                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem('${item.text}')">
-                <button class="delete-btn" onclick="deleteItem('${item.text}')">🗑️</button>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem('${item.text.replace(/'/g, "\\'")}')">
+                    <button class="delete-btn" onclick="deleteItem('${item.text.replace(/'/g, "\\'")}')">🗑️</button>
+                </div>
             `;
             
-            if (item.done) compListEl.appendChild(li);
-            else {
+            if (item.done) {
+                compListEl.appendChild(li);
+            } else {
                 listEl.appendChild(li);
                 if (item.price) total += parseFloat(item.price);
             }
         });
     }
-    document.getElementById("totalPrice").textContent = total.toFixed(2) + " €";
-    document.getElementById("divider").style.display = compListEl.children.length > 0 ? "block" : "none";
+    const totalDisplay = document.getElementById("totalPrice");
+    if (totalDisplay) totalDisplay.textContent = total.toFixed(2) + " €";
+    
+    const divider = document.getElementById("divider");
+    if (divider) divider.style.display = compListEl.children.length > 0 ? "block" : "none";
 }
 
 async function addItem() {
     const input = document.getElementById("itemInput");
     const priceInput = document.getElementById("priceInput");
+    const categorySelect = document.getElementById("categorySelect");
     if (!input.value.trim()) return;
 
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
-    const items = (data && data.items) ? data.items : [];
+    let items = (data && data.items) ? data.items : [];
     
     items.push({
         text: input.value,
-        price: priceInput.value || 0,
-        category: document.getElementById("categorySelect").value,
+        price: priceInput.value ? parseFloat(priceInput.value.replace(',', '.')) : 0,
+        category: categorySelect.value,
         done: false,
         user: userName
     });
 
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
-    input.value = ""; priceInput.value = "";
+    input.value = ""; 
+    priceInput.value = "";
     loadItems();
+}
+
+// Funkcia na prepínanie zoznamov
+function switchList(id) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('list', id);
+    window.location.href = url.pathname + url.search;
 }
 
 async function toggleItem(text) {
@@ -102,10 +132,6 @@ async function clearDone() {
     const items = data.items.filter(i => !i.done);
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
     loadItems();
-}
-
-function switchList(id) {
-    window.location.href = window.location.origin + window.location.pathname + "?list=" + id;
 }
 
 _supabase.channel("any").on("postgres_changes", {event:"*", schema:"public", table:"lists"}, () => loadItems()).subscribe();

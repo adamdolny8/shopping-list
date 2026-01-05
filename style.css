@@ -117,6 +117,7 @@ li {
 }
 
 .list-selector button.active {
-    background: #007bff;
-    color: white;
+    background-color: #28a745 !important;
+    color: white !important;
+    border-color: #28a745;
 }
