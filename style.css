@@ -59,12 +59,32 @@ li {
     background: #ffffff;
     border: 1px solid #f0f2f5;
     margin-bottom: 12px;
-    padding: 18px 25px;
+    padding: 15px 20px;
     border-radius: 15px;
-    display: flex;
-    justify-content: space-between;
+    display: grid; /* Zmeníme flex na grid pre lepšiu kontrolu */
+    grid-template-columns: 1fr auto auto; /* Názov zaberie zvyšok, checkbox a kôš majú fixné miesto */
     align-items: center;
-    text-align: left;
+    gap: 10px;
+}
+
+/* Oprava pre vstupné pole a tlačidlo, aby boli v jednom riadku aj na mobile */
+.input-group {
+    display: flex;
+    flex-direction: row; /* Vždy v riadku */
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input {
+    flex: 1;
+    min-width: 0; /* Zabraňuje inputu, aby vytlačil tlačidlo von z obrazovky */
+    padding: 12px;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px 20px;
+    white-space: nowrap; /* Tlačidlo "Pridať" sa nerozdelí do dvoch riadkov */
 }
 
 .item-info { display: flex; flex-direction: column; }
