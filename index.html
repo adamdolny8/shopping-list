@@ -1,45 +1,75 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Smart Nákup</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Premium Shopping List</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <div class="list-selector">
-        <button onclick="switchList('domov')">🏠 Domov</button>
-        <button onclick="switchList('ine')">💼 Iné</button>
+    <div class="app-container">
+        <header>
+            <div class="user-info">
+                <span id="welcomeText">Hello, User 👋</span>
+                <button onclick="changeName()" class="icon-btn">⚙️</button>
+            </div>
+            <div class="header-main">
+                <h1>Shopping List</h1>
+                <button onclick="loadItems()" class="icon-btn">🔄</button>
+            </div>
+        </header>
+
+        <nav class="list-tabs" id="listTabs">
+            <button onclick="addNewList()" class="add-tab">+</button>
+        </nav>
+
+        <div class="stats-card">
+            <div class="stat-item">
+                <span class="stat-label">Položky</span>
+                <span class="stat-value" id="itemCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Odhadovaná cena</span>
+                <span class="stat-value" id="totalPrice">0.00 €</span>
+            </div>
+        </div>
+
+        <section class="quick-add">
+            <h3>Časté položky</h3>
+            <div id="smartSuggestions" class="tags-container"></div>
+        </section>
+
+        <div class="input-area">
+            <select id="categorySelect">
+                <option value="🥦 Potraviny">🥦 Potraviny</option>
+                <option value="🧴 Drogéria">🧴 Drogéria</option>
+                <option value="🏠 Domácnosť">🏠 Domácnosť</option>
+                <option value="📦 Iné">📦 Iné</option>
+            </select>
+            <div class="input-row">
+                <input id="itemInput" placeholder="Názov položky...">
+                <input id="priceInput" type="number" step="0.01" placeholder="€">
+                <button onclick="addItem()" class="add-btn">+</button>
+            </div>
+        </div>
+
+        <main>
+            <div class="list-section">
+                <h3>Kúpiť</h3>
+                <ul id="activeList"></ul>
+            </div>
+            
+            <div id="completedSection" style="display:none;">
+                <hr class="divider">
+                <h3>Kúpené</h3>
+                <ul id="completedList"></ul>
+                <button onclick="clearDone()" class="clear-btn">🧹 Vymazať kúpené</button>
+            </div>
+        </main>
     </div>
 
-    <h1>🛒 Shopping</h1>
-    <div id="totalPrice" class="total-sum">0.00 €</div>
-
-    <div id="quickTags" class="quick-tags"></div>
-
-    <select id="categorySelect">
-      <option value="🥦 Potraviny">🥦 Potraviny</option>
-      <option value="🧴 Drogéria">🧴 Drogéria</option>
-      <option value="🏠 Domácnosť">🏠 Domácnosť</option>
-    </select>
-
-    <div class="input-group">
-      <input id="itemInput" placeholder="Čo kúpiť?">
-      <input id="priceInput" type="number" placeholder="€" style="width: 60px;">
-      <button onclick="addItem()">+</button>
-    </div>
-
-    <ul id="list"></ul>
-    <hr id="divider" style="display:none; border: 1px dashed #ccc; margin: 20px 0;">
-    <ul id="completedList"></ul>
-
-    <button class="btn-delete-all" onclick="clearDone()">🧹 Vymazať kúpené</button>
-    <button id="shareBtn" style="background:#007bff; width:100%; margin-top:10px;" onclick="navigator.clipboard.writeText(window.location.href); alert('Link skopírovaný!');">🔗 Zdieľať zoznam</button>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
 </body>
 </html>

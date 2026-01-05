@@ -2,136 +2,125 @@ const SUPABASE_URL = "https://tkgxqdrzqpawbyfjlfnm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_OKve-4fG_2d0yXhWa0UgGA_Lhq_OzOz";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Získanie mena používateľa
-let userName = localStorage.getItem("shopping_user") || prompt("Tvoje meno:") || "Hosť";
-localStorage.setItem("shopping_user", userName);
-
-const params = new URLSearchParams(window.location.search);
-let LIST_ID = params.get("list") || "domov";
+let currentUserName = localStorage.getItem("userName") || "User";
+let LIST_ID = new URLSearchParams(window.location.search).get("list") || "home";
+let history = JSON.parse(localStorage.getItem("itemHistory") || "{}");
 
 window.onload = () => {
+    updateUI();
     loadItems();
-    renderQuickTags();
+    renderTabs();
 };
 
-function renderQuickTags() {
-    const tags = ["🥛 Mlieko", "🍞 Chlieb", "🥚 Vajcia", "🍎 Ovocie", "🧻 Toaleťák"];
-    const container = document.getElementById("quickTags");
-    if (container) {
-        container.innerHTML = tags.map(t => `<span class="tag" onclick="addQuick('${t}')">${t}</span>`).join("");
+function updateUI() {
+    document.getElementById("welcomeText").innerText = `Hello, ${currentUserName} 👋`;
+    renderSuggestions();
+}
+
+function changeName() {
+    let newName = prompt("Zadaj svoje meno:", currentUserName);
+    if (newName) {
+        currentUserName = newName;
+        localStorage.setItem("userName", newName);
+        updateUI();
     }
 }
 
-async function addQuick(text) {
-    document.getElementById("itemInput").value = text;
-    addItem();
+async function renderTabs() {
+    const tabs = ["home", "car", "work"]; // Základné listy
+    const container = document.getElementById("listTabs");
+    container.innerHTML = tabs.map(t => `
+        <button class="${LIST_ID === t ? 'active' : ''}" onclick="switchList('${t}')">
+            ${t.charAt(0).toUpperCase() + t.slice(1)}
+        </button>
+    `).join("") + '<button onclick="addNewList()" class="add-tab">+</button>';
 }
 
-// OPRAVENÉ: Odstránené zdvojené "async"
+function renderSuggestions() {
+    const sorted = Object.entries(history).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const container = document.getElementById("smartSuggestions");
+    container.innerHTML = sorted.map(([name]) => `<span class="tag" onclick="quickAdd('${name}')">${name}</span>`).join("");
+}
+
 async function loadItems() {
-    const listEl = document.getElementById("list");
-    const compListEl = document.getElementById("completedList");
-    if (!listEl || !compListEl) return;
-
-    listEl.innerHTML = ""; 
-    compListEl.innerHTML = "";
-    
-    // Zvýraznenie aktívneho tlačidla zoznamu
-    document.querySelectorAll('.list-selector button').forEach(b => b.classList.remove('active'));
-    const activeBtn = document.getElementById(`btn-${LIST_ID}`);
-    if(activeBtn) {
-        activeBtn.classList.add('active');
-    }
-
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
-    let total = 0;
-
-    if (data && data.items) {
-        // Zoradenie podľa kategórie
-        data.items.sort((a,b) => a.category.localeCompare(b.category)).forEach(item => {
-            const li = document.createElement("li");
-            if (item.done) li.classList.add("done");
-
-            li.innerHTML = `
-                <div class="item-info">
-                    <span>${item.text} ${item.price > 0 ? `(<b>${item.price}€</b>)` : ''}</span>
-                    <div style="display:flex; gap:5px; align-items:center;">
-                        <span class="category-label">${item.category}</span>
-                        <span class="user-badge">${item.user || 'Hosť'}</span>
-                    </div>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem('${item.text.replace(/'/g, "\\'")}')">
-                    <button class="delete-btn" onclick="deleteItem('${item.text.replace(/'/g, "\\'")}')">🗑️</button>
-                </div>
-            `;
-            
-            if (item.done) {
-                compListEl.appendChild(li);
-            } else {
-                listEl.appendChild(li);
-                if (item.price) total += parseFloat(item.price);
-            }
-        });
-    }
-    const totalDisplay = document.getElementById("totalPrice");
-    if (totalDisplay) totalDisplay.textContent = total.toFixed(2) + " €";
+    const activeUl = document.getElementById("activeList");
+    const doneUl = document.getElementById("completedList");
+    activeUl.innerHTML = ""; doneUl.innerHTML = "";
     
-    const divider = document.getElementById("divider");
-    if (divider) divider.style.display = compListEl.children.length > 0 ? "block" : "none";
+    let total = 0;
+    let items = data?.items || [];
+
+    items.forEach(item => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <div>
+                <strong>${item.text}</strong><br>
+                <span class="item-meta">${item.category} • ${item.user}</span>
+            </div>
+            <div>
+                ${item.price > 0 ? `<span>${item.price}€</span>` : ''}
+                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem('${item.text}')">
+            </div>
+        `;
+        
+        if (item.done) {
+            li.classList.add("done");
+            doneUl.appendChild(li);
+        } else {
+            activeUl.appendChild(li);
+            total += parseFloat(item.price || 0);
+        }
+    });
+
+    document.getElementById("itemCount").innerText = items.filter(i => !i.done).length;
+    document.getElementById("totalPrice").innerText = total.toFixed(2) + " €";
+    document.getElementById("completedSection").style.display = doneUl.children.length > 0 ? "block" : "none";
 }
 
 async function addItem() {
-    const input = document.getElementById("itemInput");
-    const priceInput = document.getElementById("priceInput");
-    const categorySelect = document.getElementById("categorySelect");
-    if (!input.value.trim()) return;
+    const text = document.getElementById("itemInput").value;
+    const price = document.getElementById("priceInput").value || 0;
+    if (!text) return;
 
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
-    let items = (data && data.items) ? data.items : [];
+    let items = data?.items || [];
     
-    items.push({
-        text: input.value,
-        price: priceInput.value ? parseFloat(priceInput.value.replace(',', '.')) : 0,
-        category: categorySelect.value,
-        done: false,
-        user: userName
-    });
+    items.push({ text, price, category: document.getElementById("categorySelect").value, done: false, user: currentUserName });
+    
+    // Uloženie do histórie pre Smart Quick Add
+    history[text] = (history[text] || 0) + 1;
+    localStorage.setItem("itemHistory", JSON.stringify(history));
 
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
-    input.value = ""; 
-    priceInput.value = "";
+    document.getElementById("itemInput").value = "";
     loadItems();
 }
 
-// Funkcia na prepínanie zoznamov
-function switchList(id) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('list', id);
-    window.location.href = url.pathname + url.search;
+function quickAdd(name) {
+    document.getElementById("itemInput").value = name;
+    addItem();
 }
 
 async function toggleItem(text) {
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
-    const items = data.items.map(i => i.text === text ? {...i, done: !i.done} : i);
+    let items = data.items.map(i => i.text === text ? {...i, done: !i.done} : i);
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
     loadItems();
 }
 
-async function deleteItem(text) {
-    if (!confirm("Zmazať?")) return;
-    const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
-    const items = data.items.filter(i => i.text !== text);
-    await _supabase.from("lists").upsert({ id: LIST_ID, items });
-    loadItems();
+function switchList(id) {
+    window.location.href = `?list=${id}`;
 }
 
 async function clearDone() {
-    if (!confirm("Vymazať všetky kúpené položky?")) return;
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
-    const items = data.items.filter(i => !i.done);
+    let items = data.items.filter(i => !i.done);
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
     loadItems();
 }
 
-_supabase.channel("any").on("postgres_changes", {event:"*", schema:"public", table:"lists"}, () => loadItems()).subscribe();
+function addNewList() {
+    let name = prompt("Názov nového zoznamu:");
+    if (name) switchList(name.toLowerCase());
+}
