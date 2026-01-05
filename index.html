@@ -4,19 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nákupný Zoznam Pro</title>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
         <header>
-            <div class="user-info">
-                <span id="welcomeText">Načítavam...</span>
-                <button onclick="changeName()" class="icon-btn" title="Nastavenia mena">⚙️</button>
+            <div class="top-bar">
+                <div class="user-info">
+                    <span id="welcomeText">...</span>
+                    <button onclick="changeName()" class="icon-btn">⚙️</button>
+                </div>
+                <select id="langSelect" onchange="changeLanguage(this.value)">
+                    <option value="sk">🇸🇰 SK</option>
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="es">🇪🇸 ES</option>
+                    <option value="de">🇩🇪 DE</option>
+                </select>
             </div>
             <div class="header-main">
-                <h1>Nákupný zoznam</h1>
-                <button onclick="loadItems()" class="icon-btn" style="transition: 0.5s">🔄</button>
+                <h1 id="txt-title">Nákupný zoznam</h1>
+                <button onclick="loadItems()" class="icon-btn" id="refreshBtn">🔄</button>
             </div>
         </header>
 
@@ -24,49 +31,43 @@
 
         <div class="stats-card">
             <div class="stat-item">
-                <span class="stat-label">Položky</span>
+                <span class="stat-label" id="txt-items">Položky</span>
                 <span class="stat-value" id="itemCount">0</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Celková suma</span>
+                <span class="stat-label" id="txt-total">Celková suma</span>
                 <span class="stat-value" id="totalPrice">0.00 €</span>
             </div>
         </div>
 
         <section class="quick-add">
-            <h3>Často kupované</h3>
+            <h3 id="txt-frequent">Často kupované</h3>
             <div id="smartSuggestions" class="tags-container"></div>
         </section>
 
         <div class="input-area">
             <select id="categorySelect">
-                <option value="🥦 Potraviny">🥦 Potraviny</option>
-                <option value="🧴 Drogéria">🧴 Drogéria</option>
-                <option value="🏠 Domácnosť">🏠 Domácnosť</option>
-                <option value="📦 Iné">📦 Iné</option>
-            </select>
+                </select>
             <div class="input-row">
-                <input id="itemInput" placeholder="Názov položky...">
+                <input id="itemInput" placeholder="...">
                 <input id="priceInput" type="number" step="0.01" placeholder="€">
-                <button onclick="addItem()" class="add-btn">Pridať</button>
+                <button onclick="addItem()" class="add-btn" id="txt-addBtn">Pridať</button>
             </div>
         </div>
 
         <main>
             <div class="list-section">
-                <h3>Treba kúpiť</h3>
+                <h3 id="txt-toBuy">Treba kúpiť</h3>
                 <ul id="activeList"></ul>
             </div>
-            
             <div id="completedSection" style="display:none;">
                 <hr class="divider">
-                <h3>Kúpené</h3>
+                <h3 id="txt-bought">Kúpené</h3>
                 <ul id="completedList"></ul>
-                <button onclick="clearDone()" class="clear-btn">🧹 Vymazať históriu nákupu</button>
+                <button onclick="clearDone()" class="clear-btn" id="txt-clearBtn">Vymazať históriu</button>
             </div>
         </main>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
