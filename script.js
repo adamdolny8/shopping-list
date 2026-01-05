@@ -2,119 +2,110 @@ const SUPABASE_URL = "https://tkgxqdrzqpawbyfjlfnm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_OKve-4fG_2d0yXhWa0UgGA_Lhq_OzOz";
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const list = document.getElementById("list");
-const completedList = document.getElementById("completedList");
-const divider = document.getElementById("divider");
-const input = document.getElementById("itemInput");
-const categorySelect = document.getElementById("categorySelect");
+let userName = localStorage.getItem("shopping_user") || prompt("Tvoje meno:") || "Hosť";
+localStorage.setItem("shopping_user", userName);
 
 const params = new URLSearchParams(window.location.search);
-const LIST_ID = params.get("list") || "default";
+let LIST_ID = params.get("list") || "domov";
 
-window.onload = loadItems;
+window.onload = () => {
+    loadItems();
+    renderQuickTags();
+};
 
-input.addEventListener("keypress", (e) => { if (e.key === "Enter") addItem(); });
+function renderQuickTags() {
+    const tags = ["🥛 Mlieko", "🍞 Chlieb", "🥚 Vajcia", "🍎 Ovocie", "🧻 Toaleťák"];
+    const container = document.getElementById("quickTags");
+    container.innerHTML = tags.map(t => `<span class="tag" onclick="addQuick('${t}')">${t}</span>`).join("");
+}
+
+async function addQuick(text) {
+    document.getElementById("itemInput").value = text;
+    addItem();
+}
 
 async function loadItems() {
-    list.innerHTML = "";
-    completedList.innerHTML = "";
+    const listEl = document.getElementById("list");
+    const compListEl = document.getElementById("completedList");
+    listEl.innerHTML = ""; compListEl.innerHTML = "";
+    
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
+    let total = 0;
+
     if (data && data.items) {
-        data.items.forEach(item => addItemToList(item));
-        updateDivider();
+        data.items.sort((a,b) => a.category.localeCompare(b.category)).forEach(item => {
+            const li = document.createElement("li");
+            if (item.done) li.classList.add("done");
+
+            li.innerHTML = `
+                <div class="item-info">
+                    <span>${item.text} ${item.price ? `(<b>${item.price}€</b>)` : ''}</span>
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <span class="category-label">${item.category}</span>
+                        <span class="user-badge">${item.user || 'unknwn'}</span>
+                    </div>
+                </div>
+                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem('${item.text}')">
+                <button class="delete-btn" onclick="deleteItem('${item.text}')">🗑️</button>
+            `;
+            
+            if (item.done) compListEl.appendChild(li);
+            else {
+                listEl.appendChild(li);
+                if (item.price) total += parseFloat(item.price);
+            }
+        });
     }
+    document.getElementById("totalPrice").textContent = total.toFixed(2) + " €";
+    document.getElementById("divider").style.display = compListEl.children.length > 0 ? "block" : "none";
 }
 
 async function addItem() {
-    if (input.value.trim() === "") return;
-    const newItem = { 
-        text: input.value, 
-        done: false, 
-        category: categorySelect.value 
-    };
-    addItemToList(newItem);
-    input.value = "";
-    await saveCurrentList();
-}
+    const input = document.getElementById("itemInput");
+    const priceInput = document.getElementById("priceInput");
+    if (!input.value.trim()) return;
 
-function addItemToList(item) {
-    const li = document.createElement("li");
-    if (item.done) li.classList.add("done");
-
-    const info = document.createElement("div");
-    info.className = "item-info";
-    const span = document.createElement("span");
-    span.textContent = item.text;
-    const cat = document.createElement("div");
-    cat.className = "category-label";
-    cat.textContent = item.category;
-    info.appendChild(span);
-    info.appendChild(cat);
-
-    const actions = document.createElement("div");
-    actions.style.display = "flex";
-    actions.style.alignItems = "center";
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = item.done;
-    checkbox.onchange = async () => {
-        item.done = checkbox.checked;
-        await saveCurrentList();
-        loadItems();
-    };
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.innerHTML = "🗑️";
-    deleteBtn.className = "delete-btn";
-    deleteBtn.onclick = async () => {
-        if (confirm(`Zmazať "${item.text}"?`)) {
-            li.remove();
-            await saveCurrentList();
-            updateDivider();
-        }
-    };
-
-    actions.appendChild(checkbox);
-    actions.appendChild(deleteBtn);
-    li.appendChild(info);
-    li.appendChild(actions);
-
-    if (item.done) completedList.appendChild(li);
-    else list.appendChild(li);
-    updateDivider();
-}
-
-function updateDivider() {
-    divider.style.display = completedList.children.length > 0 ? "block" : "none";
-}
-
-async function saveCurrentList() {
-    const items = [];
-    document.querySelectorAll("li").forEach(li => {
-        items.push({
-            text: li.querySelector("span").textContent,
-            category: li.querySelector(".category-label").textContent,
-            done: li.querySelector("input[type='checkbox']").checked
-        });
+    const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
+    const items = (data && data.items) ? data.items : [];
+    
+    items.push({
+        text: input.value,
+        price: priceInput.value || 0,
+        category: document.getElementById("categorySelect").value,
+        done: false,
+        user: userName
     });
+
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
+    input.value = ""; priceInput.value = "";
+    loadItems();
 }
 
-function shareList() {
-    const url = window.location.origin + window.location.pathname + "?list=" + LIST_ID;
-    navigator.clipboard.writeText(url).then(() => alert("Odkaz skopírovaný!"));
+async function toggleItem(text) {
+    const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
+    const items = data.items.map(i => i.text === text ? {...i, done: !i.done} : i);
+    await _supabase.from("lists").upsert({ id: LIST_ID, items });
+    loadItems();
 }
 
-_supabase.channel("lists-realtime").on("postgres_changes", 
-    { event: "*", schema: "public", table: "lists", filter: `id=eq.${LIST_ID}` },
-    () => loadItems()
-).subscribe();
-// Registrácia Service Workera pre PWA
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js")
-      .then(reg => console.log("Service Worker registrovaný!"))
-      .catch(err => console.log("SW registrácia zlyhala:", err));
-  });
+async function deleteItem(text) {
+    if (!confirm("Zmazať?")) return;
+    const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
+    const items = data.items.filter(i => i.text !== text);
+    await _supabase.from("lists").upsert({ id: LIST_ID, items });
+    loadItems();
 }
+
+async function clearDone() {
+    if (!confirm("Vymazať všetky kúpené položky?")) return;
+    const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
+    const items = data.items.filter(i => !i.done);
+    await _supabase.from("lists").upsert({ id: LIST_ID, items });
+    loadItems();
+}
+
+function switchList(id) {
+    window.location.href = window.location.origin + window.location.pathname + "?list=" + id;
+}
+
+_supabase.channel("any").on("postgres_changes", {event:"*", schema:"public", table:"lists"}, () => loadItems()).subscribe();

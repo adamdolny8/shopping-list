@@ -3,36 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#28a745">
-  <title>Nákupný zoznam</title>
-
+  <title>Smart Nákup</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#28a745">
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <div class="card">
-    <h1>🛒 Shopping list</h1>
-    
+    <div class="list-selector">
+        <button onclick="switchList('domov')">🏠 Domov</button>
+        <button onclick="switchList('praca')">💼 Práca</button>
+    </div>
+
+    <h1>🛒 Shopping</h1>
+    <div id="totalPrice" class="total-sum">0.00 €</div>
+
+    <div id="quickTags" class="quick-tags"></div>
+
     <select id="categorySelect">
-      <option value="Potraviny">🥦 Potraviny</option>
-      <option value="Drogéria">🧴 Drogéria</option>
-      <option value="Domácnosť">🏠 Domácnosť</option>
-      <option value="Iné">📦 Iné</option>
+      <option value="🥦 Potraviny">🥦 Potraviny</option>
+      <option value="🧴 Drogéria">🧴 Drogéria</option>
+      <option value="🏠 Domácnosť">🏠 Domácnosť</option>
     </select>
 
     <div class="input-group">
-      <input id="itemInput" placeholder="Napíš položku...">
-      <button onclick="addItem()">Pridať</button>
+      <input id="itemInput" placeholder="Čo kúpiť?">
+      <input id="priceInput" type="number" placeholder="€" style="width: 60px;">
+      <button onclick="addItem()">+</button>
     </div>
 
     <ul id="list"></ul>
-    <hr id="divider" style="display:none; margin: 30px 0; border: 0; border-top: 1px dashed #ccc;">
+    <hr id="divider" style="display:none; border: 1px dashed #ccc; margin: 20px 0;">
     <ul id="completedList"></ul>
 
-    <button id="shareBtn" onclick="shareList()">🔗 Kopírovať odkaz na zdieľanie</button>
+    <button class="btn-delete-all" onclick="clearDone()">🧹 Vymazať kúpené</button>
+    <button id="shareBtn" style="background:#007bff; width:100%; margin-top:10px;" onclick="navigator.clipboard.writeText(window.location.href); alert('Link skopírovaný!');">🔗 Zdieľať zoznam</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
