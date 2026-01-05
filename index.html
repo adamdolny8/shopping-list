@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Shopping List</title>
+    <title>Nákupný Zoznam Pro</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,18 +11,16 @@
     <div class="app-container">
         <header>
             <div class="user-info">
-                <span id="welcomeText">Hello, User 👋</span>
-                <button onclick="changeName()" class="icon-btn">⚙️</button>
+                <span id="welcomeText">Načítavam...</span>
+                <button onclick="changeName()" class="icon-btn" title="Nastavenia mena">⚙️</button>
             </div>
             <div class="header-main">
-                <h1>Shopping List</h1>
-                <button onclick="loadItems()" class="icon-btn">🔄</button>
+                <h1>Nákupný zoznam</h1>
+                <button onclick="loadItems()" class="icon-btn" style="transition: 0.5s">🔄</button>
             </div>
         </header>
 
-        <nav class="list-tabs" id="listTabs">
-            <button onclick="addNewList()" class="add-tab">+</button>
-        </nav>
+        <nav class="list-tabs" id="listTabs"></nav>
 
         <div class="stats-card">
             <div class="stat-item">
@@ -30,13 +28,13 @@
                 <span class="stat-value" id="itemCount">0</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Odhadovaná cena</span>
+                <span class="stat-label">Celková suma</span>
                 <span class="stat-value" id="totalPrice">0.00 €</span>
             </div>
         </div>
 
         <section class="quick-add">
-            <h3>Časté položky</h3>
+            <h3>Často kupované</h3>
             <div id="smartSuggestions" class="tags-container"></div>
         </section>
 
@@ -50,13 +48,13 @@
             <div class="input-row">
                 <input id="itemInput" placeholder="Názov položky...">
                 <input id="priceInput" type="number" step="0.01" placeholder="€">
-                <button onclick="addItem()" class="add-btn">+</button>
+                <button onclick="addItem()" class="add-btn">Pridať</button>
             </div>
         </div>
 
         <main>
             <div class="list-section">
-                <h3>Kúpiť</h3>
+                <h3>Treba kúpiť</h3>
                 <ul id="activeList"></ul>
             </div>
             
@@ -64,7 +62,7 @@
                 <hr class="divider">
                 <h3>Kúpené</h3>
                 <ul id="completedList"></ul>
-                <button onclick="clearDone()" class="clear-btn">🧹 Vymazať kúpené</button>
+                <button onclick="clearDone()" class="clear-btn">🧹 Vymazať históriu nákupu</button>
             </div>
         </main>
     </div>
