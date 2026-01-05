@@ -7,115 +7,134 @@
     --text-dim: #a0a0a0;
 }
 
-body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 20px;
+body { 
+    font-family: 'Inter', system-ui, sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    margin: 0; 
+    padding: 20px; 
 }
 
 .app-container { max-width: 500px; margin: 0 auto; }
 
 header { margin-bottom: 25px; }
-.user-info { display: flex; justify-content: space-between; color: var(--text-dim); font-size: 14px; }
+.user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.header-controls { display: flex; gap: 10px; align-items: center; }
+
 .header-main { display: flex; justify-content: space-between; align-items: center; }
 
-.list-tabs {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto; /* Umožní skrolovanie ak je veľa sekcií */
-    padding: 10px 0;
-    scrollbar-width: none; /* Skryje scrollbar na Firefoxe */
+/* Sekcie - Tabs */
+.list-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+.list-tabs::-webkit-scrollbar { display: none; }
+.list-tabs button { 
+    background: var(--card); 
+    border: 1px solid #333; 
+    color: white; 
+    padding: 8px 15px; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    white-space: nowrap; 
+    transition: 0.3s; 
 }
-.list-tabs::-webkit-scrollbar { display: none; } /* Skryje scrollbar na Chrome/Safari */
+.list-tabs button.active { 
+    background: var(--primary); 
+    border-color: var(--primary); 
+    box-shadow: 0 4px 15px rgba(138,43,226,0.3); 
+}
 
-.list-tabs button {
-    cursor: pointer;
-    transition: all 0.2s;
+/* Krížik na mazanie sekcie */
+.delete-tab-icon { 
+    font-size: 16px; 
+    opacity: 0.6; 
+    margin-left: 5px;
 }
+.delete-tab-icon:hover { color: #ff4757; opacity: 1; }
 
-.add-tab {
-    background: #333 !important;
-    font-weight: bold;
-    min-width: 40px;
-}
-.stats-card {
-    background: linear-gradient(135deg, #6e30f2, #aba0f9);
-    padding: 20px;
-    border-radius: 20px;
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 25px;
+/* Fialová karta so štatistikami */
+.stats-card { 
+    background: linear-gradient(135deg, #6e30f2, #aba0f9); 
+    padding: 20px; 
+    border-radius: 20px; 
+    display: flex; 
+    justify-content: space-around; 
+    margin-bottom: 20px; 
 }
 .stat-item { text-align: center; }
 .stat-label { display: block; font-size: 12px; opacity: 0.8; }
 .stat-value { font-size: 20px; font-weight: bold; }
 
-.tags-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-.tag { background: #2a2e3f; padding: 6px 12px; border-radius: 20px; font-size: 13px; cursor: pointer; }
+/* Vyhľadávanie */
+.search-area { margin-bottom: 20px; }
+.search-area input { 
+    width: 100%; 
+    background: var(--card); 
+    border: 1px solid #333; 
+    color: white; 
+    padding: 12px; 
+    border-radius: 12px; 
+    box-sizing: border-box; 
+}
 
+/* Často kupované bublinky */
+.tags-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.tag { 
+    background: #2a2e3f; 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 13px; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    border: 1px solid transparent; 
+}
+.tag:hover { 
+    background: var(--primary); 
+    transform: translateY(-2px); 
+}
+
+/* Vstupné pole */
 .input-area { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 25px; }
 .input-row { display: flex; gap: 8px; margin-top: 10px; }
 input, select { background: #0f111a; border: 1px solid #333; color: white; padding: 10px; border-radius: 10px; }
-#priceInput { width: 60px; }
-.add-btn { background: var(--primary); border: none; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
-
-li {
-    background: var(--card);
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+#priceInput { width: 70px; }
+.add-btn { 
+    background: var(--primary); 
+    border: none; 
+    color: white; 
+    padding: 10px 15px; 
+    border-radius: 10px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    flex-grow: 1; 
 }
-li.done { opacity: 0.5; text-decoration: line-through; }
+
+/* Položky v zozname */
+li { 
+    background: var(--card); 
+    margin-bottom: 10px; 
+    padding: 15px; 
+    border-radius: 12px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    transition: 0.3s; 
+}
+li.done { opacity: 0.4; text-decoration: line-through; }
 .item-meta { font-size: 11px; color: var(--text-dim); }
 
-.clear-btn { width: 100%; padding: 12px; background: #eb4d4b; border: none; color: white; border-radius: 10px; margin-top: 15px; }
-.icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; }
-/* 1. Efekt po kliknutí na tlačidlá */
-button:active {
-    transform: scale(0.95);
+/* Tlačidlá a ikony */
+.clear-btn { 
+    width: 100%; 
+    padding: 12px; 
+    background: #eb4d4b; 
+    border: none; 
+    color: white; 
+    border-radius: 10px; 
+    margin-top: 15px; 
+    cursor: pointer; 
 }
-
-/* 2. Zvýraznenie aktívnej sekcie (Domov/Auto/...) */
-.list-tabs button.active {
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
-/* 3. Lepšie rozloženie pre kategórie v zozname */
-.item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-/* Štýl pre krížik na mazanie sekcií */
-.delete-tab-icon {
-    margin-left: 10px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    line-height: 1;
-    color: white;
-    transition: 0.2s;
-}
-
-.delete-tab-icon:hover {
-    background: #ff4757; /* Jasná červená pri interakcii */
-    transform: scale(1.1);
-}
-
-/* Úprava tlačidla sekcie, aby sa krížik zmestil vedľa textu */
-.list-tabs button {
-    display: flex;
-    align-items: center;
-    padding: 8px 14px;
-}
+.icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: white; transition: 0.3s; }
+.icon-btn:active { transform: scale(0.9); }
+button:active { transform: scale(0.95); }
