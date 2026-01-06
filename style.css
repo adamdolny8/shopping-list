@@ -1,3 +1,4 @@
+/* --- ZÁKLADNÉ NASTAVENIA --- */
 :root {
     --primary: #8a2be2;
     --accent: #2ecc71;
@@ -17,7 +18,7 @@ body {
 
 .app-container { max-width: 500px; margin: 0 auto; }
 
-/* HLAVIČKA */
+/* --- HLAVIČKA A KONTROLKY --- */
 header { margin-bottom: 25px; }
 .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .header-controls { display: flex; gap: 12px; align-items: center; }
@@ -32,9 +33,11 @@ header { margin-bottom: 25px; }
     cursor: pointer;
 }
 
-.header-main { display: flex; justify-content: space-between; align-items: center; }
+#onlineStatus { font-size: 10px; margin-right: 10px; font-weight: bold; }
 
-/* SEKTCIE - TABS */
+.header-main { display: space-between; align-items: center; }
+
+/* --- SEKTCIE (TABS) --- */
 .list-tabs { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
 .list-tabs::-webkit-scrollbar { display: none; }
 .list-tabs button { 
@@ -55,17 +58,11 @@ header { margin-bottom: 25px; }
     border-color: var(--primary); 
     box-shadow: 0 4px 15px rgba(138,43,226,0.3); 
 }
-
 .add-tab { background: #333 !important; font-weight: bold; min-width: 40px; }
-
-.delete-tab-icon { 
-    font-size: 16px; 
-    opacity: 0.6; 
-    margin-left: 5px;
-}
+.delete-tab-icon { font-size: 16px; opacity: 0.6; margin-left: 5px; }
 .delete-tab-icon:hover { color: #ff4757; opacity: 1; }
 
-/* ŠTATISTIKY */
+/* --- ŠTATISTIKY A VYHĽADÁVANIE --- */
 .stats-card { 
     background: linear-gradient(135deg, #6e30f2, #aba0f9); 
     padding: 20px; 
@@ -78,7 +75,6 @@ header { margin-bottom: 25px; }
 .stat-label { display: block; font-size: 12px; opacity: 0.8; }
 .stat-value { font-size: 20px; font-weight: bold; }
 
-/* VYHĽADÁVANIE */
 .search-area { margin-bottom: 20px; }
 .search-area input { 
     width: 100%; 
@@ -90,7 +86,7 @@ header { margin-bottom: 25px; }
     box-sizing: border-box; 
 }
 
-/* ČASTO KUPOVANÉ */
+/* --- ČASTO KUPOVANÉ (TAGY) --- */
 .tags-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
 .tag { 
     background: #2a2e3f; 
@@ -101,12 +97,9 @@ header { margin-bottom: 25px; }
     transition: 0.2s; 
     border: 1px solid transparent; 
 }
-.tag:hover { 
-    background: var(--primary); 
-    transform: translateY(-2px); 
-}
+.tag:hover { background: var(--primary); transform: translateY(-2px); }
 
-/* VSTUPNÉ POLE */
+/* --- VSTUPNÉ POLE PRE NOVÉ POLOŽKY --- */
 .input-area { background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 25px; }
 .input-row { display: flex; gap: 8px; margin-top: 10px; }
 input, select { background: #0f111a; border: 1px solid #333; color: white; padding: 10px; border-radius: 10px; }
@@ -120,9 +113,10 @@ input, select { background: #0f111a; border: 1px solid #333; color: white; paddi
     font-weight: bold; 
     cursor: pointer; 
     flex-grow: 1; 
+    margin-top: 10px;
 }
 
-/* POLOŽKY V ZOZNAME */
+/* --- ZOZNAM POLOŽIEK --- */
 li { 
     background: var(--card); 
     margin-bottom: 10px; 
@@ -137,8 +131,10 @@ li.done { opacity: 0.4; text-decoration: line-through; }
 
 .item-main { display: flex; align-items: center; gap: 15px; }
 .item-meta { font-size: 11px; color: var(--text-dim); }
+.item-comment { font-size: 11px; color: var(--accent); opacity: 0.9; font-style: italic; }
+.price-history { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
 
-/* POSÚVANIE (ŠÍPKY) */
+/* ŠÍPKY NA POSÚVANIE */
 .move-controls { display: flex; flex-direction: column; gap: 2px; }
 .move-btn { 
     background: #2a2e3f; 
@@ -175,6 +171,26 @@ li.done { opacity: 0.4; text-decoration: line-through; }
 
 .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: white; transition: 0.3s; }
 
-/* EFEKTY */
+/* --- EFEKTY A ANIMÁCIE --- */
 .icon-btn:active { transform: scale(0.9); }
 button:active { transform: scale(0.95); }
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.animate-in { animation: slideIn 0.3s ease-out; }
+
+/* --- UNDO TOAST (NOTIFIKÁCIA) --- */
+#undoToast {
+    position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%);
+    background: var(--primary); color: white; padding: 12px 20px;
+    border-radius: 12px; display: flex; gap: 15px; align-items: center;
+    transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 1000;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+}
+#undoToast.show { bottom: 30px; }
+#undoToast button {
+    background: white; color: var(--primary); border: none;
+    padding: 5px 10px; border-radius: 8px; font-weight: bold; cursor: pointer;
+}

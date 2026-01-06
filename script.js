@@ -7,48 +7,65 @@ let currentUserName = localStorage.getItem("userName");
 let LIST_ID = new URLSearchParams(window.location.search).get("list") || "domov";
 let myLists = JSON.parse(localStorage.getItem("myLists")) || ["domov"];
 let itemHistory = JSON.parse(localStorage.getItem("itemHistory") || "{}");
+let lastDeletedItem = null; 
 
 const translations = {
     sk: {
         welcome: "Ahoj", title: "Nákupný zoznam", items: "Položky", total: "Celková suma",
         frequent: "Často kupované", addBtn: "Pridať", toBuy: "Treba kúpiť", bought: "Kúpené",
         clearBtn: "Vymazať históriu nákupu", promptList: "Názov novej sekcie:", placeholder: "Názov položky...",
-        searchPlaceholder: "🔍 Vyhľadať...", promptName: "Ako sa voláš?",
-        categories: ["🥦 Potraviny", "🧴 Drogéria", "🏠 Domácnosť", "📦 Iné"]
+        searchPlaceholder: "🔍 Vyhľadať...", promptName: "Ako sa voláš?", undo: "Späť",
+        comment: "Poznámka (napr. značka)...", categories: ["🥦 Potraviny", "🧴 Drogéria", "🏠 Domácnosť", "📦 Iné"]
     },
     en: {
-        welcome: "Hello", title: "Shopping List", items: "Items", total: "Total Amount",
-        frequent: "Frequently Bought", addBtn: "Add", toBuy: "To Buy", bought: "Bought",
-        clearBtn: "Clear Purchase History", promptList: "New section name:", placeholder: "Item name...",
-        searchPlaceholder: "🔍 Search...", promptName: "What is your name?",
-        categories: ["🥦 Groceries", "🧴 Drugstore", "🏠 Household", "📦 Other"]
+        welcome: "Hello", title: "Shopping List", items: "Items", total: "Total",
+        frequent: "Frequent", addBtn: "Add", toBuy: "To Buy", bought: "Bought",
+        clearBtn: "Clear History", promptList: "New section:", placeholder: "Item name...",
+        searchPlaceholder: "🔍 Search...", promptName: "Your name?", undo: "Undo",
+        comment: "Note (e.g. brand)...", categories: ["🥦 Groceries", "🧴 Drugstore", "🏠 Household", "📦 Other"]
     },
     es: {
         welcome: "Hola", title: "Lista de compras", items: "Artículos", total: "Suma total",
         frequent: "Frecuentes", addBtn: "Añadir", toBuy: "Por comprar", bought: "Comprado",
         clearBtn: "Borrar historial", promptList: "Nueva sección:", placeholder: "Nombre...",
-        searchPlaceholder: "🔍 Buscar...", promptName: "Tu nombre:",
-        categories: ["🥦 Comida", "🧴 Farmacia", "🏠 Hogar", "📦 Otros"]
+        searchPlaceholder: "🔍 Buscar...", promptName: "Tu nombre:", undo: "Deshacer",
+        comment: "Nota...", categories: ["🥦 Comida", "🧴 Farmacia", "🏠 Hogar", "📦 Otros"]
     },
     de: {
         welcome: "Hallo", title: "Einkaufsliste", items: "Artikel", total: "Gesamtbetrag",
         frequent: "Oft gekauft", addBtn: "Hinzufügen", toBuy: "Zu kaufen", bought: "Gekauft",
         clearBtn: "Verlauf löschen", promptList: "Neuer Bereich:", placeholder: "Artikel...",
-        searchPlaceholder: "🔍 Suchen...", promptName: "Dein Name:",
-        categories: ["🥦 Lebensmittel", "🧴 Drogerie", "🏠 Haushalt", "📦 Sonstiges"]
+        searchPlaceholder: "🔍 Suchen...", promptName: "Dein Name:", undo: "Rückgängig",
+        comment: "Notiz...", categories: ["🥦 Lebensmittel", "🧴 Drogerie", "🏠 Haushalt", "📦 Sonstiges"]
     }
 };
 
 window.onload = () => {
-    if (!currentUserName) {
-        changeName();
-    }
+    if (!currentUserName) changeName();
     document.getElementById("langSelect").value = currentLang;
     applyLanguage();
     renderTabs();
     loadItems();
     renderSuggestions();
+    
+    // 1️⃣ Enter pre pridanie
+    document.getElementById("itemInput").addEventListener("keypress", (e) => { if (e.key === "Enter") addItem(); });
+    document.getElementById("priceInput").addEventListener("keypress", (e) => { if (e.key === "Enter") addItem(); });
+    document.getElementById("commentInput").addEventListener("keypress", (e) => { if (e.key === "Enter") addItem(); });
+    
+    // 7️⃣ Online sledovanie
+    window.addEventListener('online', checkOnlineStatus);
+    window.addEventListener('offline', checkOnlineStatus);
+    checkOnlineStatus();
 };
+
+function checkOnlineStatus() {
+    const status = document.getElementById("onlineStatus");
+    if (status) {
+        status.innerHTML = navigator.onLine ? "🟢 Online" : "🔴 Offline";
+        status.style.opacity = navigator.onLine ? "1" : "0.5";
+    }
+}
 
 function changeLanguage(lang) {
     currentLang = lang;
@@ -61,27 +78,22 @@ function changeLanguage(lang) {
 
 function applyLanguage() {
     const t = translations[currentLang] || translations.sk;
-    
-    if(document.getElementById("welcomeText")) 
-        document.getElementById("welcomeText").innerText = `${t.welcome}, ${currentUserName || '...'} 👋`;
-    
-    if(document.getElementById("txt-title")) document.getElementById("txt-title").innerText = t.title;
-    if(document.getElementById("txt-items")) document.getElementById("txt-items").innerText = t.items;
-    if(document.getElementById("txt-total")) document.getElementById("txt-total").innerText = t.total;
-    if(document.getElementById("txt-frequent")) document.getElementById("txt-frequent").innerText = t.frequent;
-    
-    if(document.getElementById("itemInput")) document.getElementById("itemInput").placeholder = t.placeholder;
-    if(document.getElementById("searchInput")) document.getElementById("searchInput").placeholder = t.searchPlaceholder;
-    if(document.getElementById("txt-addBtn")) document.getElementById("txt-addBtn").innerText = t.addBtn;
-    
-    if(document.getElementById("txt-toBuy")) document.getElementById("txt-toBuy").innerText = t.toBuy;
-    if(document.getElementById("txt-bought")) document.getElementById("txt-bought").innerText = t.bought;
-    if(document.getElementById("txt-clearBtn")) document.getElementById("txt-clearBtn").innerText = t.clearBtn;
+    document.getElementById("welcomeText").innerText = `${t.welcome}, ${currentUserName || '...'} 👋`;
+    document.getElementById("txt-title").innerText = t.title;
+    document.getElementById("txt-items").innerText = t.items;
+    document.getElementById("txt-total").innerText = t.total;
+    document.getElementById("txt-frequent").innerText = t.frequent;
+    document.getElementById("itemInput").placeholder = t.placeholder;
+    document.getElementById("commentInput").placeholder = t.comment;
+    document.getElementById("searchInput").placeholder = t.searchPlaceholder;
+    document.getElementById("txt-addBtn").innerText = t.addBtn;
+    document.getElementById("txt-toBuy").innerText = t.toBuy;
+    document.getElementById("txt-bought").innerText = t.bought;
+    document.getElementById("txt-clearBtn").innerText = t.clearBtn;
+    document.getElementById("undoBtn").innerText = t.undo;
 
     const catSelect = document.getElementById("categorySelect");
-    if(catSelect) {
-        catSelect.innerHTML = t.categories.map(c => `<option value="${c}">${c}</option>`).join("");
-    }
+    if(catSelect) catSelect.innerHTML = t.categories.map(c => `<option value="${c}">${c}</option>`).join("");
 }
 
 function changeName() {
@@ -139,8 +151,13 @@ async function loadItems() {
 
     items.forEach((item, index) => {
         const li = document.createElement("li");
+        li.className = "animate-in"; // 15️⃣ Animácia
         if (item.done) li.classList.add("done");
         
+        // 11️⃣ História cien
+        const history = itemHistory[item.text.toLowerCase()];
+        const historyHTML = (history && history.price > 0) ? `<div class="price-history">Minule: ${history.price}€</div>` : '';
+
         li.innerHTML = `
             <div class="item-main">
                 <div class="move-controls">
@@ -148,8 +165,10 @@ async function loadItems() {
                     <button class="move-btn" onclick="moveItem(${index}, 1)">▼</button>
                 </div>
                 <div>
-                    <strong>${item.text}</strong><br>
+                    <strong onclick="editItem('${item.id}')" style="cursor:pointer">${item.text}</strong><br>
+                    ${item.comment ? `<span class="item-comment">${item.comment}</span><br>` : ''}
                     <span class="item-meta">${item.category} • ${item.user}</span>
+                    ${historyHTML}
                 </div>
             </div>
             <div class="item-actions">
@@ -166,15 +185,25 @@ async function loadItems() {
     document.getElementById("completedSection").style.display = doneUl.children.length > 0 ? "block" : "none";
 }
 
+// 2️⃣ Editácia položky
+async function editItem(id) {
+    const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
+    let items = data.items;
+    let itm = items.find(i => String(i.id) === String(id));
+    let newVal = prompt("Upraviť názov:", itm.text);
+    if(newVal) {
+        itm.text = newVal;
+        await _supabase.from("lists").upsert({ id: LIST_ID, items });
+        loadItems();
+    }
+}
+
 async function moveItem(index, direction) {
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
     let items = data.items;
     let newIndex = index + direction;
-    
     if (newIndex >= 0 && newIndex < items.length) {
-        const temp = items[index];
-        items[index] = items[newIndex];
-        items[newIndex] = temp;
+        [items[index], items[newIndex]] = [items[newIndex], items[index]];
         await _supabase.from("lists").upsert({ id: LIST_ID, items });
         loadItems();
     }
@@ -183,7 +212,7 @@ async function moveItem(index, direction) {
 function filterItems() {
     const q = document.getElementById("searchInput").value.toLowerCase();
     document.querySelectorAll("li").forEach(li => {
-        const text = li.querySelector("strong").innerText.toLowerCase();
+        const text = li.innerText.toLowerCase();
         li.style.display = text.includes(q) ? "flex" : "none";
     });
 }
@@ -191,9 +220,11 @@ function filterItems() {
 async function addItem() {
     const input = document.getElementById("itemInput");
     const price = document.getElementById("priceInput");
+    const comment = document.getElementById("commentInput");
     if (!input.value.trim()) return;
 
-    itemHistory[input.value.trim()] = (itemHistory[input.value.trim()] || 0) + 1;
+    // Uloženie do histórie pre cenový tip
+    itemHistory[input.value.trim().toLowerCase()] = { price: price.value || 0 };
     localStorage.setItem("itemHistory", JSON.stringify(itemHistory));
 
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
@@ -203,19 +234,20 @@ async function addItem() {
         id: Date.now() + Math.random(), 
         text: input.value.trim(), 
         price: price.value || 0, 
+        comment: comment.value.trim(), // 13️⃣ Komentár
         category: document.getElementById("categorySelect").value, 
         done: false, 
         user: currentUserName 
     });
 
     await _supabase.from("lists").upsert({ id: LIST_ID, items });
-    input.value = ""; price.value = "";
+    input.value = ""; price.value = ""; comment.value = "";
     loadItems(); renderSuggestions();
 }
 
 function renderSuggestions() {
-    const sorted = Object.entries(itemHistory).sort((a,b) => b[1]-a[1]).slice(0, 8);
-    document.getElementById("smartSuggestions").innerHTML = sorted.map(([n]) => 
+    const sorted = Object.keys(itemHistory).slice(0, 8);
+    document.getElementById("smartSuggestions").innerHTML = sorted.map(n => 
         `<span class="tag" onclick="quickAdd('${n}')">${n}</span>`
     ).join("");
 }
@@ -230,8 +262,26 @@ async function toggleItem(id) {
 
 async function deleteItem(id) {
     const { data } = await _supabase.from('lists').select('items').eq('id', LIST_ID).single();
+    // 4️⃣ Undo logic
+    lastDeletedItem = { listId: LIST_ID, item: data.items.find(i => String(i.id) === String(id)) };
     let items = data.items.filter(i => String(i.id) !== String(id));
-    await _supabase.from("lists").upsert({ id: LIST_ID, items }); loadItems();
+    await _supabase.from("lists").upsert({ id: LIST_ID, items });
+    
+    const toast = document.getElementById("undoToast");
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 5000);
+    loadItems();
+}
+
+async function undoDelete() {
+    if(!lastDeletedItem) return;
+    const { data } = await _supabase.from('lists').select('items').eq('id', lastDeletedItem.listId).single();
+    let items = data?.items || [];
+    items.push(lastDeletedItem.item);
+    await _supabase.from("lists").upsert({ id: lastDeletedItem.listId, items });
+    lastDeletedItem = null;
+    document.getElementById("undoToast").classList.remove("show");
+    loadItems();
 }
 
 async function clearDone() {
